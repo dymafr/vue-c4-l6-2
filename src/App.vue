@@ -1,26 +1,31 @@
 <template>
   <p>
-    Ask a yes/no question:
+    Posez une question (réponse oui / non):
     <input v-model="question" />
   </p>
-  <p>{{ answer }}</p>
+  <p>Réponse : {{ reponse.res }}</p>
+  <img :src="reponse.image" />
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue';
+import { ref, watch, reactive } from 'vue';
 
 const question = ref('');
-const answer = ref('Questions usually contain a question mark. ;-)');
+const reponse = reactive({
+  res: 'En attente de votre question...',
+  image: '',
+});
 
-// watch works directly on a ref
 watch(question, async (newQuestion, oldQuestion) => {
-  if (newQuestion.indexOf('?') > -1) {
-    answer.value = 'Thinking...';
+  if (newQuestion.includes('?')) {
+    reponse.res = 'Requête en cours...';
     try {
       const res = await fetch('https://yesno.wtf/api');
-      answer.value = (await res.json()).answer;
+      const resJSON = await res.json();
+      reponse.res = resJSON.answer;
+      reponse.image = resJSON.image;
     } catch (error) {
-      answer.value = 'Error! Could not reach the API. ' + error;
+      reponse.res = `Erreur : ${error}`;
     }
   }
 });
